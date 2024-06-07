@@ -3,5 +3,5 @@ myenv/*
 /nuevaenv/*
 /myenv/*
 .env
-docker-compose
+docker-compose.yml
 Dockerfile
