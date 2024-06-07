@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  pybot:
+    build: .
+    environment:
+      - DISCORD_KEY=${DISCORD_KEY}
+      - API_DOLAR=${API_DOLAR}
+      - API_GOOGLE=${API_GOOGLE}      
+    volumes:
+      - .:/app
+    command: python bot.py

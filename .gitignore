@@ -1,0 +1,7 @@
+nuevaenv/*
+myenv/*
+/nuevaenv/*
+/myenv/*
+.env
+docker-compose
+Dockerfile
