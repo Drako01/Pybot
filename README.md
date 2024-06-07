@@ -22,7 +22,7 @@ Este bot ha sido creado con un propósito muy claro: dar forma y enriquecer la e
 ----
 
 
-[Canal de Discord](https://discord.gg/EEd5RvnZ)
+[Canal de Discord](https://discord.gg/NdE3jYnf)
 
 ## Para iniciar:
 ```
