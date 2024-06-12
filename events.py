@@ -78,9 +78,11 @@ async def on_message(message, bot):
     mensaje = message.content.lower()
     
     if any(keyword in mensaje for keyword in ["código", "programación", "code", "programming"]):
-        recomendacion = f"Hola {message.author.mention}, veo que tienes una consulta sobre programación. 
-        Te recomiendo que uses ChatGPT para obtener respuestas detalladas y específicas sobre tu código. 
-        ¡Es una excelente herramienta!"
+        recomendacion = (
+                f"Hola {message.author.mention}, veo que tienes una consulta sobre programación. "
+                "Te recomiendo que uses ChatGPT para obtener respuestas detalladas y específicas sobre tu código. "
+                "¡Es una excelente herramienta! Accedé desde: https://chatgpt.com/"
+            )
         await message.channel.send(recomendacion)
         return
 
