@@ -16,7 +16,9 @@ WELCOME_CHANNEL_ID = os.getenv('WELCOME_CHANNEL_ID')
 
 # Crea una instancia de la clase Bot con los intentos especificados
 intents = discord.Intents.default()
-intents.members = True  # Asegúrate de tener permisos para ver los miembros
+intents.members = True  
+intents.message_content = True
+
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
@@ -41,6 +43,10 @@ async def on_member_join(member):
     await events.on_member_join(member, bot)
     
 @bot.event
+async def on_member_remove(member):
+    await events.on_member_remove(member, bot)
+
+@bot.event
 async def on_message(message):
     await events.on_message(message, bot)
 
@@ -48,6 +54,4 @@ async def on_message(message):
 async def on_raw_reaction_add(payload):
     await events.on_raw_reaction_add(payload, bot)
     
-    
-# Ejecutar el bot con el token
 bot.run(TOKEN)

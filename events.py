@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 url = os.getenv('API_DOLAR')
 google = os.getenv('API_GOOGLE')
+join_channel = os.getenv('CHANNEL_JOIN')
 
 async def on_raw_reaction_add(payload, bot):
     if payload.member.bot:
@@ -42,11 +43,21 @@ async def on_member_join(member, bot):
         mensaje_de_bienvenida = f'Bienvenido al servidor, {member.mention}!'
         await canal_de_bienvenida.send(mensaje_de_bienvenida)
     
-    channel = bot.get_channel(1242557348229419149) 
+    channel = bot.get_channel(join_channel) 
     message = await channel.send(f'Bienvenido {member.mention}! Reacciona a este mensaje para seleccionar tus roles:')
 
     for emoji in ['👨‍💻', '📂', '⌨️', '💻', '🖥️', '🎨', '👁️']:
         await message.add_reaction(emoji)
+
+# Evento que se ejecuta cuando un miembro abandona el servidor
+async def on_member_remove(member, bot):
+    guild = member.guild
+    canal_de_despedida = discord.utils.get(guild.channels, name="bienvenida")
+
+    if canal_de_despedida:
+        mensaje_de_despedida = f'{member.mention} ha dejado el servidor. ¡Te echaremos de menos!'
+        await canal_de_despedida.send(mensaje_de_despedida)
+
 
 async def obtener_usuarios_offline(message):
     usuarios_offline = [m for m in message.guild.members if m.status == discord.Status.offline]
@@ -65,13 +76,35 @@ async def on_message(message, bot):
         return
 
     mensaje = message.content.lower()
+    
+    if any(keyword in mensaje for keyword in ["código", "programación", "code", "programming"]):
+        recomendacion = f"Hola {message.author.mention}, veo que tienes una consulta sobre programación. 
+        Te recomiendo que uses ChatGPT para obtener respuestas detalladas y específicas sobre tu código. 
+        ¡Es una excelente herramienta!"
+        await message.channel.send(recomendacion)
+        return
+
+    respuestas = {
+        "hola": "¡Hola! ¿Cómo estás?",
+        "adios": "¡Adiós! ¡Que tengas un buen día!",
+        "ayuda": "¿En qué puedo ayudarte?",
+        "buen día": "¡Buen día! ¿Cómo estás?",
+        "buenas tardes": "¡Buenas tardes! ¿Cómo te va?",
+        "buenas noches": "¡Buenas noches! Que descanses.",
+        "cómo te llamas": "Soy un bot creado por un hacker usando Python.",
+        "qué puedes hacer": "Puedo responder preguntas, darte información sobre el dólar y mucho más.",
+        "offline": await obtener_usuarios_offline(message)
+    }
+
+    for key, value in respuestas.items():
+        if key in mensaje:
+            await message.channel.send(value)
+            return
 
     if ("dolar" in mensaje or "dólar" in mensaje or "euro" in mensaje) and (("oficial" in mensaje or "blue" in mensaje) and ("compra" in mensaje or "venta" in mensaje)):
         tipo = "oficial" if "oficial" in mensaje else "blue" if "blue" in mensaje else "oficial_euro" if "euro" in mensaje else "blue_euro"
         accion = "compra" if "compra" in mensaje else "venta"
 
-        # Obtener el valor del dólar o euro
-        
         response = requests.get(url)
 
         if response.status_code == 200:
@@ -104,7 +137,7 @@ async def on_message(message, bot):
             respuesta = f'Hasta luego {apodo}!'
         elif any(saludo in mensaje for saludo in ["ayudar", "ayuda", "help", "ayudame"]):
             respuesta = f'Obviamente, ¿en qué te puedo ayudar {apodo}?'
-        elif any(saludo in mensaje for saludo in ["sos", "robot", "extraterreste"]):
+        elif any(saludo in mensaje for saludo in ["sos", "robot", "extraterrestre"]):
             respuesta = f'Para nada {apodo}, soy un Bot generado con Python por un Hacker!.'
         elif "offline" in mensaje:
             await obtener_usuarios_offline(message)
