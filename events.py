@@ -86,22 +86,6 @@ async def on_message(message, bot):
         await message.channel.send(recomendacion)
         return
 
-    respuestas = {
-        "hola": "¡Hola! ¿Cómo estás?",
-        "adios": "¡Adiós! ¡Que tengas un buen día!",
-        "ayuda": "¿En qué puedo ayudarte?",
-        "buen día": "¡Buen día! ¿Cómo estás?",
-        "buenas tardes": "¡Buenas tardes! ¿Cómo te va?",
-        "buenas noches": "¡Buenas noches! Que descanses.",
-        "cómo te llamas": "Soy un bot creado por un hacker usando Python.",
-        "qué puedes hacer": "Puedo responder preguntas, darte información sobre el dólar y mucho más.",
-        "offline": await obtener_usuarios_offline(message)
-    }
-
-    for key, value in respuestas.items():
-        if key in mensaje:
-            await message.channel.send(value)
-            return
 
     if ("dolar" in mensaje or "dólar" in mensaje or "euro" in mensaje) and (("oficial" in mensaje or "blue" in mensaje) and ("compra" in mensaje or "venta" in mensaje)):
         tipo = "oficial" if "oficial" in mensaje else "blue" if "blue" in mensaje else "oficial_euro" if "euro" in mensaje else "blue_euro"
