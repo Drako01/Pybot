@@ -1,4 +1,3 @@
-# events-py
 import discord
 import urllib.parse
 import requests
@@ -9,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 url = os.getenv('API_DOLAR')
 google = os.getenv('API_GOOGLE')
-join_channel = os.getenv('CHANNEL_JOIN')
+join_channel = int(os.getenv('CHANNEL_JOIN'))  # Asegúrate de que CHANNEL_JOIN sea un ID numérico válido
 
 async def on_raw_reaction_add(payload, bot):
     if payload.member.bot:
@@ -33,7 +32,7 @@ async def on_raw_reaction_add(payload, bot):
 
     except Exception as e:
         print(f'Error: {e}')
-        
+
 # Evento que se ejecuta cuando un nuevo miembro se une al servidor
 async def on_member_join(member, bot):
     guild = member.guild
@@ -57,7 +56,6 @@ async def on_member_remove(member, bot):
     if canal_de_despedida:
         mensaje_de_despedida = f'{member.mention} ha dejado el servidor. ¡Te echaremos de menos!'
         await canal_de_despedida.send(mensaje_de_despedida)
-
 
 async def obtener_usuarios_offline(message):
     usuarios_offline = [m for m in message.guild.members if m.status == discord.Status.offline]
@@ -85,7 +83,6 @@ async def on_message(message, bot):
             )
         await message.channel.send(recomendacion)
         return
-
 
     if ("dolar" in mensaje or "dólar" in mensaje or "euro" in mensaje) and (("oficial" in mensaje or "blue" in mensaje) and ("compra" in mensaje or "venta" in mensaje)):
         tipo = "oficial" if "oficial" in mensaje else "blue" if "blue" in mensaje else "oficial_euro" if "euro" in mensaje else "blue_euro"
@@ -117,11 +114,11 @@ async def on_message(message, bot):
 
     if bot.user.mentioned_in(message):
         apodo = message.author.mention
-        if any(saludo in mensaje for saludo in ["hola", "hello", "hi", "Buen dia", "Buenas tardes", "Buenas noches"]):
-            respuesta = f'Hola {apodo}! ¿Cómo estas en el día de hoy?'
+        if any(saludo in mensaje for saludo in ["hola", "hello", "hi", "buen dia", "buenas tardes", "buenas noches"]):
+            respuesta = f'Hola {apodo}! ¿Cómo estás en el día de hoy?'
         elif any(saludo in mensaje for saludo in ["adios", "chau", "bye"]):
             respuesta = f'Hasta luego {apodo}!'
-        elif any(saludo in mensaje for saludo in ["ayudar", "ayuda", "help", "ayudame"]):
+        elif any(saludo in mensaje for saludo in ["ayudar", "ayuda", "help", "ayúdame"]):
             respuesta = f'Obviamente, ¿en qué te puedo ayudar {apodo}?'
         elif any(saludo in mensaje for saludo in ["sos", "robot", "extraterrestre"]):
             respuesta = f'Para nada {apodo}, soy un Bot generado con Python por un Hacker!.'
@@ -129,6 +126,6 @@ async def on_message(message, bot):
             await obtener_usuarios_offline(message)
             return
         else:
-            respuesta = f'Quedo atento a lo que necesites {apodo}!'
+            respuesta = f'¡Quedo atento a lo que necesites, {apodo}!'
     
         await message.channel.send(respuesta)

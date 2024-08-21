@@ -32,10 +32,6 @@ async def on_ready():
 
 @bot.event
 async def on_member_join(member):
-    await events.on_member_join(member, bot)
-
-@bot.event
-async def on_member_join(member):
     # Obtén el canal de bienvenida usando el método bot.get_channel
     welcome_channel = bot.get_channel(WELCOME_CHANNEL_ID)
     if welcome_channel:
