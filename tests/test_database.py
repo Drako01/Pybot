@@ -25,6 +25,25 @@ async def test_guild_settings_roundtrip(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
+async def test_self_roles_are_allowlisted_per_guild(tmp_path) -> None:
+    database = Database(tmp_path / "pybot.db")
+    await database.connect()
+    try:
+        await database.add_self_role(100, 501)
+        await database.add_self_role(100, 502)
+        await database.add_self_role(100, 501)
+        await database.add_self_role(200, 999)
+
+        assert await database.list_self_roles(100) == [501, 502]
+        assert await database.list_self_roles(200) == [999]
+        assert await database.remove_self_role(100, 501) is True
+        assert await database.remove_self_role(100, 501) is False
+        assert await database.list_self_roles(100) == [502]
+    finally:
+        await database.close()
+
+
+@pytest.mark.asyncio
 async def test_reminders_are_persistent_and_deletable(tmp_path) -> None:
     database = Database(tmp_path / "pybot.db")
     await database.connect()
