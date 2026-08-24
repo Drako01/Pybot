@@ -72,8 +72,16 @@ class Database:
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
 
+            CREATE TABLE IF NOT EXISTS self_roles (
+                guild_id INTEGER NOT NULL,
+                role_id INTEGER NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (guild_id, role_id)
+            );
+
             CREATE INDEX IF NOT EXISTS idx_reminders_due ON reminders(remind_at);
             CREATE INDEX IF NOT EXISTS idx_reminders_user ON reminders(user_id);
+            CREATE INDEX IF NOT EXISTS idx_self_roles_guild ON self_roles(guild_id);
             """
         )
         await self.connection.commit()
@@ -117,6 +125,32 @@ class Database:
             (value, guild_id),
         )
         await self.connection.commit()
+
+    async def add_self_role(self, guild_id: int, role_id: int) -> None:
+        await self.connection.execute(
+            "INSERT OR IGNORE INTO self_roles (guild_id, role_id) VALUES (?, ?)",
+            (guild_id, role_id),
+        )
+        await self.connection.commit()
+
+    async def remove_self_role(self, guild_id: int, role_id: int) -> bool:
+        cursor = await self.connection.execute(
+            "DELETE FROM self_roles WHERE guild_id = ? AND role_id = ?",
+            (guild_id, role_id),
+        )
+        await self.connection.commit()
+        deleted = cursor.rowcount > 0
+        await cursor.close()
+        return deleted
+
+    async def list_self_roles(self, guild_id: int) -> list[int]:
+        cursor = await self.connection.execute(
+            "SELECT role_id FROM self_roles WHERE guild_id = ? ORDER BY role_id",
+            (guild_id,),
+        )
+        rows = await cursor.fetchall()
+        await cursor.close()
+        return [int(row["role_id"]) for row in rows]
 
     async def add_reminder(
         self,
