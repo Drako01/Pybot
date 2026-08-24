@@ -1,8 +1,41 @@
-nuevaenv/*
-myenv/*
-/nuevaenv/*
-/myenv/*
+# Environment and secrets
 .env
-docker-compose.yml
-/docker-compose.yml
-Dockerfile
+.env.*
+!.env.example
+
+# Virtual environments
+.venv/
+venv/
+env/
+myenv/
+nuevaenv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Local data / persistence
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Build artifacts
+build/
+dist/
+*.egg-info/

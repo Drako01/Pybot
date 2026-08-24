@@ -1,0 +1,1 @@
+"""Utilidades internas de PyBot."""

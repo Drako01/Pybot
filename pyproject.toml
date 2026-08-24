@@ -1,0 +1,25 @@
+[project]
+name = "pybot-discord"
+version = "2.0.0"
+description = "Bot profesional y extensible para comunidades de Discord"
+requires-python = ">=3.11"
+authors = [{ name = "Alejandro Daniel Di Stefano" }]
+license = { text = "MIT" }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+exclude = [".venv", "venv", "data"]
+
+[tool.ruff.lint]
+select = ["E", "F", "UP", "B", "ASYNC"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
