@@ -56,6 +56,63 @@ class CommunityCog(commands.Cog):
             embed.set_thumbnail(url=member.display_avatar.url)
             await channel.send(embed=embed)
 
+    @app_commands.command(name="roles", description="Muestra los roles que los miembros pueden autoasignarse.")
+    @app_commands.guild_only()
+    async def self_roles(self, interaction: discord.Interaction) -> None:
+        guild = interaction.guild
+        assert guild is not None
+        role_ids = await self.bot.database.list_self_roles(guild.id)  # type: ignore[attr-defined]
+        roles = [guild.get_role(role_id) for role_id in role_ids]
+        valid_roles = [role for role in roles if role is not None]
+
+        if not valid_roles:
+            await interaction.response.send_message(
+                "Este servidor todavía no configuró roles autoasignables.", ephemeral=True
+            )
+            return
+
+        embed = discord.Embed(
+            title="🎭 Roles autoasignables",
+            description="\n".join(f"• {role.mention}" for role in valid_roles),
+            colour=discord.Colour.blurple(),
+        )
+        embed.set_footer(text="Usá /rol para agregar o quitar uno de estos roles")
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    @app_commands.command(name="rol", description="Agrega o quita un rol autoasignable de tu perfil.")
+    @app_commands.guild_only()
+    @app_commands.checks.bot_has_permissions(manage_roles=True)
+    async def self_role(self, interaction: discord.Interaction, rol: discord.Role) -> None:
+        guild = interaction.guild
+        member = interaction.user
+        assert guild is not None
+        if not isinstance(member, discord.Member):
+            await interaction.response.send_message("No pude resolver tu membresía.", ephemeral=True)
+            return
+
+        allowed_ids = await self.bot.database.list_self_roles(guild.id)  # type: ignore[attr-defined]
+        if rol.id not in allowed_ids:
+            await interaction.response.send_message(
+                "❌ Ese rol no está habilitado para autoasignación. Usá `/roles` para ver los disponibles.",
+                ephemeral=True,
+            )
+            return
+
+        if guild.me is None or rol >= guild.me.top_role or rol.managed:
+            await interaction.response.send_message(
+                "❌ No puedo administrar ese rol por la jerarquía o porque es un rol gestionado.",
+                ephemeral=True,
+            )
+            return
+
+        if rol in member.roles:
+            await member.remove_roles(rol, reason="Autoasignación mediante PyBot")
+            message = f"➖ Se quitó {rol.mention}."
+        else:
+            await member.add_roles(rol, reason="Autoasignación mediante PyBot")
+            message = f"✅ Se agregó {rol.mention}."
+        await interaction.response.send_message(message, ephemeral=True)
+
     @app_commands.command(name="config-ver", description="Muestra la configuración de PyBot para este servidor.")
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(manage_guild=True)
@@ -63,6 +120,7 @@ class CommunityCog(commands.Cog):
         guild = interaction.guild
         assert guild is not None
         settings = await self.bot.database.get_guild_settings(guild.id)  # type: ignore[attr-defined]
+        self_role_ids = await self.bot.database.list_self_roles(guild.id)  # type: ignore[attr-defined]
 
         def channel_name(channel_id: int | None) -> str:
             if not channel_id:
@@ -76,6 +134,9 @@ class CommunityCog(commands.Cog):
             role = guild.get_role(role_id)
             return role.mention if role else f"ID `{role_id}` (no encontrado)"
 
+        self_roles = [guild.get_role(role_id) for role_id in self_role_ids]
+        self_role_text = ", ".join(role.mention for role in self_roles if role is not None) or "Ninguno"
+
         embed = discord.Embed(
             title="⚙️ Configuración de PyBot",
             colour=discord.Colour.blurple(),
@@ -84,6 +145,7 @@ class CommunityCog(commands.Cog):
         embed.add_field(name="Despedida", value=channel_name(settings.farewell_channel_id), inline=False)
         embed.add_field(name="Mod log", value=channel_name(settings.modlog_channel_id), inline=False)
         embed.add_field(name="Autorol", value=role_name(settings.autorole_id), inline=False)
+        embed.add_field(name="Roles autoasignables", value=self_role_text, inline=False)
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @app_commands.command(name="config-bienvenida", description="Configura o desactiva el canal de bienvenida.")
@@ -143,9 +205,9 @@ class CommunityCog(commands.Cog):
         guild = interaction.guild
         assert guild is not None
 
-        if rol is not None and guild.me is not None and rol >= guild.me.top_role:
+        if rol is not None and (rol.managed or (guild.me is not None and rol >= guild.me.top_role)):
             await interaction.response.send_message(
-                "❌ Ese rol está por encima (o al mismo nivel) que mi rol más alto.",
+                "❌ Ese rol no puede ser administrado por el bot o está por encima de mi rol más alto.",
                 ephemeral=True,
             )
             return
@@ -155,6 +217,32 @@ class CommunityCog(commands.Cog):
         )
         message = f"Autorol configurado: {rol.mention}." if rol else "Autorol desactivado."
         await interaction.response.send_message(f"✅ {message}", ephemeral=True)
+
+    @app_commands.command(name="config-rol-agregar", description="Habilita un rol para autoasignación por los miembros.")
+    @app_commands.guild_only()
+    @app_commands.checks.has_permissions(manage_roles=True)
+    async def config_self_role_add(self, interaction: discord.Interaction, rol: discord.Role) -> None:
+        guild = interaction.guild
+        assert guild is not None
+        if rol.is_default() or rol.managed or (guild.me is not None and rol >= guild.me.top_role):
+            await interaction.response.send_message(
+                "❌ Ese rol no es apto para autoasignación o está fuera de mi jerarquía.", ephemeral=True
+            )
+            return
+        await self.bot.database.add_self_role(guild.id, rol.id)  # type: ignore[attr-defined]
+        await interaction.response.send_message(
+            f"✅ {rol.mention} quedó habilitado para `/rol`.", ephemeral=True
+        )
+
+    @app_commands.command(name="config-rol-quitar", description="Quita un rol de la lista de autoasignables.")
+    @app_commands.guild_only()
+    @app_commands.checks.has_permissions(manage_roles=True)
+    async def config_self_role_remove(self, interaction: discord.Interaction, rol: discord.Role) -> None:
+        guild = interaction.guild
+        assert guild is not None
+        removed = await self.bot.database.remove_self_role(guild.id, rol.id)  # type: ignore[attr-defined]
+        message = f"✅ {rol.mention} ya no es autoasignable." if removed else "Ese rol no estaba configurado."
+        await interaction.response.send_message(message, ephemeral=True)
 
 
 async def setup(bot: commands.Bot) -> None:
