@@ -17,7 +17,7 @@ line-length = 100
 exclude = [".venv", "venv", "data"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "ASYNC"]
+select = ["E", "F", "UP", "B", "ASYNC"]
 ignore = ["E501"]
 
 [tool.ruff.format]
