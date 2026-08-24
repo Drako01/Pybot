@@ -35,7 +35,7 @@ class Settings:
     http_timeout_seconds: float = 8.0
 
     @classmethod
-    def from_env(cls) -> "Settings":
+    def from_env(cls) -> Settings:
         load_dotenv()
 
         token = (os.getenv("DISCORD_TOKEN") or os.getenv("DISCORD_KEY") or "").strip()
