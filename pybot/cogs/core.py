@@ -40,16 +40,16 @@ class CoreCog(commands.Cog):
             inline=False,
         )
         embed.add_field(
+            name="🎭 Comunidad",
+            value="`/roles` `/rol` · administración con `/config-*`",
+            inline=False,
+        )
+        embed.add_field(
             name="🛡️ Moderación",
             value="`/limpiar` `/timeout` `/untimeout` `/expulsar` `/banear` `/slowmode`",
             inline=False,
         )
-        embed.add_field(
-            name="⚙️ Comunidad",
-            value="`/config-ver` `/config-bienvenida` `/config-despedida` `/config-modlog` `/config-autorol`",
-            inline=False,
-        )
-        embed.set_footer(text=f"PyBot v{__version__}")
+        embed.set_footer(text=f"PyBot v{__version__} · consultá README/docs para referencia completa")
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @app_commands.command(name="ping", description="Mide la latencia actual del bot.")
