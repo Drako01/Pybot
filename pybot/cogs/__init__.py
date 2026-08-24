@@ -1,0 +1,1 @@
+"""Cogs de PyBot."""
